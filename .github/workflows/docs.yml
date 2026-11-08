@@ -1,0 +1,41 @@
+name: Documentation
+
+# Build check only: the published documentation is built by ReadTheDocs
+# (see .readthedocs.yaml), which does not build pull requests.
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Doxygen and LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            doxygen make ghostscript \
+            texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended texlive-font-utils texlive-plain-generic
+
+      - name: Run Doxygen
+        run: |
+          cmake -S . -B build
+          cmake --build build --target doc
+
+      - name: Build PDF reference manual
+        run: |
+          make -C build/documentation/latex
+          cp build/documentation/latex/refman.pdf build/documentation/html/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: build/documentation/html

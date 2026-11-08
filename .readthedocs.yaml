@@ -1,0 +1,27 @@
+# ReadTheDocs build: plain Doxygen HTML plus the PDF reference manual,
+# built through the CMake `doc` target (no Sphinx involved)
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
+  apt_packages:
+    - cmake
+    - doxygen
+    - ghostscript
+    - texlive-latex-base
+    - texlive-latex-recommended
+    - texlive-latex-extra
+    - texlive-fonts-recommended
+    - texlive-font-utils
+    - texlive-plain-generic
+  commands:
+    - cmake -S . -B _build
+    - cmake --build _build --target doc
+    - make -C _build/documentation/latex
+    - mkdir -p $READTHEDOCS_OUTPUT/html $READTHEDOCS_OUTPUT/pdf
+    - cp -r _build/documentation/html/. $READTHEDOCS_OUTPUT/html/
+    # keep the old URL .../en/latest/refman.pdf working
+    - cp _build/documentation/latex/refman.pdf $READTHEDOCS_OUTPUT/html/
+    - cp _build/documentation/latex/refman.pdf $READTHEDOCS_OUTPUT/pdf/RingDecomposerLib.pdf
