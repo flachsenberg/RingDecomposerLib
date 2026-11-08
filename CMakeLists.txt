@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.5...3.28)
-project (RingDecomposerLib VERSION 1.0)
+project (RingDecomposerLib VERSION 1.1.3)
 
 enable_testing()
 
