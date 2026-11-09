@@ -71,3 +71,30 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest -C Release --output-on-failure --parallel 4
+
+  rdkit-benchmark:
+    name: RDKit benchmark
+    # pinned: RDKit from apt must match the Boost version it was built against
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install RDKit and Boost
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends librdkit-dev libboost-program-options-dev
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_RDKIT_BENCHMARK=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run benchmark
+        run: |
+          printf '%s\n' 'c1ccccc1 benzene' 'c1ccc2ccccc2c1 naphthalene' \
+            'C1C2CC3CC1CC(C2)C3 adamantane' 'C12C3C4C1C5C2C3C45 cubane' > smoke.smi
+          build/src/RDKitBenchmark/RDKitBenchmark_static -i smoke.smi -r 1 --rc
+          for f in test/*.dimacs; do
+            build/src/RDKitBenchmark/RDKitBenchmark -i "$f" -r 1 --rc > /dev/null
+          done
